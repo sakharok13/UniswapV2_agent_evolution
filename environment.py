@@ -1,6 +1,5 @@
 import numpy as np
-import matplotlib.pyplot as plt
-import pandas as pd
+
 
 ##agent: coins available method (coin, amount)
 
@@ -30,9 +29,9 @@ class Uni(object):
             return (self.y * delta) / ((self.x - delta) * (1 - self.fee))
 
     def swap(self, amount : float, agent):
-        self.x += self.splip_price(amount)
+        self.x += self.slip_price(amount)
         self.y -= self.slip_price(amount * -1)
-        agent.x -= self.slipt_price(amount)
+        agent.x -= self.slip_price(amount)
         agent.y += self.slip_price(amount * -1)
 
     def update_state(self):
