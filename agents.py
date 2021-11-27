@@ -23,7 +23,9 @@ class UniAI(nn.Module):
 class Arb(object):
     #uni1 - ETH/BTC current price with delta -> 0
     #uni2, uni2 - ETH/DAI, BTC/DAI
-    def __init__(self, uni1, uni2, uni3, c1, c2, c3, h1, h2, Env1, Env2, Env3):
+    def __init__(self, uni1, uni2, uni3, c1, c2, c3, h1, h2):
+        self.init = (c1, c2, c3)
+        self.init_market = (h1, h2)
         self.uni1 = uni1
         self.uni2 = uni2
         self.uni3 = uni3
@@ -36,7 +38,6 @@ class Arb(object):
         for param in self.model.parameters():
             param.requires_grad = False
         init_weights(self.model)
-        self.Env1 = Env1
 
 
     def get_action(self, vector):
@@ -55,17 +56,64 @@ class Arb(object):
             real_action[2] = min(real_action[2], self.c2)
         else:
             real_action[2] = max(-self.c3, real_action[2])
+        self.real_action = real_action
 
         return real_action
         #output[:3] will be the amounts of coins to swap on the Uni1, Uni2, Uni3 pools
         #sign is important here: if vector[0] > 0 agent will swap ETH for BTC, else if vector[0] <= 0 agent will swap BTC for ETH
         #the same is for ETH/DAI and BTC/DAI
+    #eth/btc, eth/dai, btc/dai
 
-    def update_env(self, ):
+    def upd_portfolio(self, deltas, h1, h2):
+        self.h1 = h1
+        self.h2 = h2 #updating market prices
+        if self.real_action[0] > 0:
+            self.c1 -= self.real_action[0]
+            self.c2 += deltas[0]
+        else:
+            self.c2 += self.real_action[0]
+            self.c1 += deltas
+        if self.real_action[1] > 0:
+            self.c1 -= self.real_action[1]
+            self.c3 += deltas[2]
+        else:
+            self.c3 += self.real_action[1]
+            self.c1 += deltas[1]
+        if self.real_action[2] > 0:
+            self.c2 -= self.real_action[2]
+            self.c3 += deltas[2]
+        else:
+            self.c3 += self.real_action[2]
+            self.c2 += deltas[2]
+
+    def sell(self):
+        if self.real_action[3] > 0:
+            self.real_action[3] = min(self.c1, self.real_action[3])
+            self.c1 -= self.real_action[3]
+            self.c3 += self.real_action[3]
+        else:
+            self.real_action[3] = max(self.real_action[3], -self.c3)
+            self.c1 -= self.real_action[3]
+            self.c3 += self.real_action[3]
+
+        if self.real_action[4] > 0:
+            self.real_action[4] = min(self.c2, self.real_action[4])
+            self.c1 -= self.real_action[3]
+            self.c3 += self.real_action[3]
+        else:
+            self.real_action[4] = max(self.real_action[4], -self.c3)
+            self.c1 -= self.real_action[4]
+            self.c3 += self.real_action[4]
+
+    def get_return(self):
+        return (self.c1 * self.h1  + self.c2 * self.h2 + self.c3) / (self.init[0] * self.init_market[0] + self.init[1] * self.init_market[1] + self.init[2])
+
 
 #trader only sees uniswap and is not interested in selling coins to markets
 class Trader(Uni):
-    def __init__(self, uni1, uni2, uni3, c1, c2, c3):
+    def __init__(self, uni1, uni2, uni3, c1, c2, c3, h1, h2):
+        self.init_market = (h1, h2)
+        self.init = (c1, c2, c3)
         self.uni1 = uni1
         self.uni2 = uni2
         self.uni3 = uni3
@@ -73,10 +121,27 @@ class Trader(Uni):
         self.c2 = c2
         self.c3 = c3
         self.model = UniAI(6, 3)
-        pass
-
-    def model(self):
 
     # define a model
-    def action(self):
+    def get_action(self, vector):
+        real_action = self.model(vector)
+
+        if real_action[0] > 0:
+            real_action[0] = min(real_action[0], self.c1)
+        else:
+            real_action[0] = max(-self.c2, real_action[0])
+
+        if real_action[1] > 0:
+            real_action[1] = min(real_action[1], self.c1)
+        else:
+            real_action[1] = max(-self.c3, real_action[1])
+
+        if real_action[2] > 0:
+            real_action[2] = min(real_action[2], self.c2)
+        else:
+            real_action[2] = max(-self.c3, real_action[2])
+        self.real_action = real_action
+
+
+
 # action f(c1, c2, c3, hist,..) -> amount to sell

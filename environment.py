@@ -28,11 +28,10 @@ class Uni(object):
         elif delta < 0:
             return (self.y * delta) / ((self.x - delta) * (1 - self.fee))
 
-    def swap(self, amount : float, agent):
+    def swap(self, amount : float):
         self.x += self.slip_price(amount)
         self.y -= self.slip_price(amount * -1)
-        agent.x -= self.slip_price(amount)
-        agent.y += self.slip_price(amount * -1)
+        return self.slip_price(amount)
 
     def update_state(self):
         self.current_state += 1
@@ -42,4 +41,7 @@ class Uni(object):
 
     def y2x(self):
         return self.y / (self.x * (1 - self.fee))
+
+    def update_agent(self, x):
+
 
