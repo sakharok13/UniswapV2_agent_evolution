@@ -21,15 +21,24 @@ class Uni(object):
         self.x += x
         self.y += y
 
+    #how much will we get for delta
     def slip_price(self, delta : float):
         if delta >= 0:
-            return (self.x * delta) / ( (self.y - delta) * (1 - self.fee))
+            self.y -= self.y - (self.x * self.y) / (self.x + delta * (1 - self.fee))
+            return self.y - (self.x * self.y) / (self.x + delta * (1 - self.fee))
+
         elif delta < 0:
-            return (self.y * delta) / ((self.x - delta) * (1 - self.fee))
+            delta = abs(delta)
+            self.x -= self.x - (self.x * self.y) / ( self.y + (1 - self.fee) * delta)
+            return self.x - (self.x * self.y) / ( self.y + (1 - self.fee) * delta)
 
     def swap(self, amount : float):
-        self.x += self.slip_price(amount)
-        self.y -= self.slip_price(amount * -1)
+        #swap AMOUNT of X to Y, so we need to calculate slip price of Y
+        if amount > 0 :
+            self.x += amount
+        else:
+            amount = abs(amount)
+            self.y += amount
         return self.slip_price(amount)
 
     def update_state(self):

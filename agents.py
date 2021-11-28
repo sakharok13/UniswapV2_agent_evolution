@@ -169,6 +169,4 @@ class Trader(object):
     def get_return(self):
         return (self.c1 * self.h1  + self.c2 * self.h2 + self.c3) / (self.init[0] * self.init_market[0] + self.init[1] * self.init_market[1] + self.init[2])
 
-
-
 # action f(c1, c2, c3, hist,..) -> amount to sell
