@@ -1,6 +1,7 @@
 import copy
 import numpy as np
 import random
+from agents import *
 
 def return_random_agents(num_agents, typ, env1, env2, env3, h1, h2): #type = 'trader' or 'arbitrageur'
   if typ == 'trader':
