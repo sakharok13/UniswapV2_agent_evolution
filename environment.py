@@ -1,7 +1,6 @@
 import numpy as np
-
-
 ##agent: coins available method (coin, amount)
+
 
 class Uni(object):
     def __init__(self, x_init, y_init, x_history, y_history):
@@ -41,7 +40,4 @@ class Uni(object):
 
     def y2x(self):
         return self.y / (self.x * (1 - self.fee))
-
-    def update_agent(self, x):
-
 
